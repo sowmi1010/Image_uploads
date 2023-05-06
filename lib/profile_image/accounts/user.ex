@@ -5,6 +5,7 @@ defmodule ProfileImage.Accounts.User do
   schema "users" do
     field :descrption, :string
     field :username, :string
+    field :uploaded_files, {:array, :string}, default: []
     timestamps()
   end
 

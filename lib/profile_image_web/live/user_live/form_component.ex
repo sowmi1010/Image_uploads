@@ -18,24 +18,34 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
         phx-target={@myself}
         phx-change="validate"
         phx-drop-target={@uploads.image.ref}
-        phx-submit="save">
+        phx-submit="save"
+      >
         <.input field={@form[:username]} type="text" label="Username" />
         <.input field={@form[:descrption]} type="textarea" label="Descrption" />
         <.live_file_input upload={@uploads.image} />
         <%= for entry <- @uploads.image.entries do %>
-         <figure>
-           <.live_img_preview entry={entry} class="h-46 object-cover w-96"/>
-           <figcaption class="text-sm font-bold text-green-400"><%= entry.client_name %></figcaption>
-         </figure>
-          <progress value={entry.progress} max="100" class="bg-green-600 h-2.5 rounded-full"> <%= entry.progress %>% </progress>
-            <button type="button" phx-click="cancel-upload" phx-value-ref={entry.ref} aria-label="cancel">&times;</button>
-           <%= for err <- upload_errors(@uploads.image, entry) do %>
-             <p class="text-red-500 text-lg font-semibold"><%= error_to_string(err) %></p>
-           <% end %>
+          <figure>
+            <.live_img_preview entry={entry} class="h-46 object-cover w-96" />
+            <figcaption class="text-sm font-bold text-green-400"><%= entry.client_name %></figcaption>
+          </figure>
+          <progress value={entry.progress} max="100" class="bg-green-600 h-2.5 rounded-full">
+            <%= entry.progress %>%
+          </progress>
+          <button
+            type="button"
+            phx-click="cancel-upload"
+            phx-value-ref={entry.ref}
+            aria-label="cancel"
+          >
+            &times;
+          </button>
+          <%= for err <- upload_errors(@uploads.image, entry) do %>
+            <p class="text-red-500 text-lg font-semibold"><%= error_to_string(err) %></p>
+          <% end %>
         <% end %>
-           <%= for err <- upload_errors(@uploads.image) do %>
-             <p class="text-red-500 text-lg font-semibold"><%= error_to_string(err) %></p>
-           <% end %>
+        <%= for err <- upload_errors(@uploads.image) do %>
+          <p class="text-red-500 text-lg font-semibold"><%= error_to_string(err) %></p>
+        <% end %>
         <:actions>
           <.button phx-disable-with="Saving...">Save User</.button>
         </:actions>
@@ -77,7 +87,7 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
           Path.join([:code.priv_dir(:profile_image), "static", "uploads", Path.basename(path)])
 
         File.cp!(path, dest)
-        {:ok, "/uploads/" <> Path.basename(dest)}
+        {:ok, ~p"/uploads/" <> Path.basename(dest)}
       end)
 
     {:noreply, update(socket, :uploaded_files, &(&1 ++ uploaded_files))}
@@ -86,6 +96,10 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
   end
 
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
+    {:noreply, cancel_upload(socket, :image, ref)}
+  end
+
+  def handle_event("cancel-upload", %{"ref" => ref, "value" => _value}, socket) do
     {:noreply, cancel_upload(socket, :image, ref)}
   end
 
