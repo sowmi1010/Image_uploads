@@ -87,19 +87,20 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
           Path.join([:code.priv_dir(:profile_image), "static", "uploads", Path.basename(path)])
 
         File.cp!(path, dest)
-        {:ok, ~p"/uploads/" <> Path.basename(dest)}
+        {:ok, ~s(/uploads/#{Path.basename(dest)})}
       end)
 
-    {:noreply, update(socket, :uploaded_files, &(&1 ++ uploaded_files))}
+    user_params =
+      unless Enum.empty?(uploaded_files) do
+        Map.replace(user_params, "uploaded_files", true)
+      else
+        user_params
+      end
 
     save_user(socket, socket.assigns.action, user_params)
   end
 
   def handle_event("cancel-upload", %{"ref" => ref}, socket) do
-    {:noreply, cancel_upload(socket, :image, ref)}
-  end
-
-  def handle_event("cancel-upload", %{"ref" => ref, "value" => _value}, socket) do
     {:noreply, cancel_upload(socket, :image, ref)}
   end
 
@@ -113,7 +114,7 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
          |> put_flash(:info, "User updated successfully")
          |> push_patch(to: socket.assigns.patch)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
@@ -128,7 +129,7 @@ defmodule ProfileImageWeb.UserLive.FormComponent do
          |> put_flash(:info, "User created successfully")
          |> push_patch(to: socket.assigns.patch)}
 
-      {:error, %Ecto.Changeset{} = changeset} ->
+      {:error, changeset} ->
         {:noreply, assign_form(socket, changeset)}
     end
   end
